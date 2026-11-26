@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nepenthes Highlands: Settings</title>
+<style>
+:root{--bg:#0c1a12;--panel:#12261b;--ink:#eef6e6;--moss:#8fc46a;--dim:#a9bfa0;--warn:#e0846a;color-scheme:dark;box-sizing:border-box}
+*{box-sizing:inherit}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;padding:max(20px,env(safe-area-inset-top)) 18px max(24px,env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto}
+h1{font-weight:400;font-size:clamp(30px,6vw,46px);margin:0 0 4px}
+p{color:var(--dim);line-height:1.5;margin:0 0 18px}
+fieldset{border:1px solid #fff3;border-radius:8px;background:var(--panel);margin:0 0 16px;padding:12px 16px 6px}
+legend{padding:0 8px;color:var(--moss);font-size:18px}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;margin:0 0 14px;align-items:center}
+.row label{font-size:16px}
+.row output{font:14px system-ui,sans-serif;color:var(--moss);min-width:3.5ch;text-align:right}
+.row input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--moss)}
+.row small{grid-column:1/-1;color:var(--dim);font:13px/1.35 system-ui,sans-serif}
+.chk{display:flex;gap:10px;align-items:center;margin:0 0 14px;font-size:16px}
+.chk input{width:20px;height:20px;accent-color:var(--moss)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+a.go,button{font:16px Georgia,serif;color:var(--ink);background:#1d3a2a;border:1px solid #fff4;border-radius:6px;padding:9px 16px;cursor:pointer;text-decoration:none}
+a.go{background:#2d5a3c;border-color:var(--moss)}
+button.del{border-color:var(--warn);color:var(--warn);background:transparent}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #ffd27a;outline-offset:2px}
+#msg{min-height:1.4em;color:var(--moss);font:14px system-ui,sans-serif;margin-top:12px}
+</style></head><body><main>
+<h1>Settings</h1>
+<p>Changes save to a cookie as you make them and apply when you go back to the game.</p>
+<fieldset><legend>View</legend>
+<div class="row"><label for="fov">Field of view</label><output id="o_fov"></output><input id="fov" type="range" min="50" max="110" step="1"><small>Wider shows more of the ridge but stretches the edges.</small></div>
+<div class="row"><label for="scale">Resolution scale</label><output id="o_scale"></output><input id="scale" type="range" min="0.5" max="1.5" step="0.05"><small>Lower it if the game runs slowly. Higher is sharper.</small></div>
+<div class="row"><label for="fog">Mist distance</label><output id="o_fog"></output><input id="fog" type="range" min="0.4" max="1.2" step="0.05"><small>How far you can see before the mist swallows the terrain.</small></div>
+</fieldset>
+<fieldset><legend>Shaders</legend>
+<label class="chk"><input id="fx" type="checkbox"> Enable shader effects</label>
+<div class="row"><label for="bloom">Glow</label><output id="o_bloom"></output><input id="bloom" type="range" min="0" max="1.5" step="0.05"></div>
+<div class="row"><label for="vig">Vignette</label><output id="o_vig"></output><input id="vig" type="range" min="0" max="1" step="0.05"></div>
+<div class="row"><label for="sat">Colour saturation</label><output id="o_sat"></output><input id="sat" type="range" min="0.5" max="1.8" step="0.05"></div>
+<div class="row"><label for="con">Contrast</label><output id="o_con"></output><input id="con" type="range" min="0.8" max="1.3" step="0.05"></div>
+</fieldset>
+<div class="btns"><a class="go" href="index.html">Back to game</a><button id="reset" type="button">Reset to defaults</button><button id="wipe" type="button" class="del">Delete saved progress</button></div>
+<div id="msg" role="status"></div>
+</main>
+<script>
+const P=location.pathname.replace(/[^/]*$/,''),
+DEF={fov:72,scale:1,fog:1,fx:1,bloom:.5,vig:.4,sat:1.1,con:1.05},
+rd=n=>{const m=document.cookie.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):''},
+ck=(n,v)=>{document.cookie=n+'='+encodeURIComponent(v)+';max-age=31536000;path='+P+';SameSite=Lax'},
+msg=t=>{document.getElementById('msg').textContent=t};
+let S={...DEF};
+new URLSearchParams(rd('nh_set')).forEach((v,k)=>{if(k in S&&isFinite(v))S[k]=+v});
+const keys=Object.keys(DEF);
+function show(){for(const k of keys){const e=document.getElementById(k);if(k==='fx')e.checked=!!S.fx;else{e.value=S[k];document.getElementById('o_'+k).textContent=S[k]+(k==='fov'?'°':'')}}}
+function store(){ck('nh_set',new URLSearchParams(S).toString());msg('Saved.')}
+for(const k of keys){document.getElementById(k).addEventListener('input',e=>{S[k]=k==='fx'?(e.target.checked?1:0):+e.target.value;show();store()})}
+document.getElementById('reset').onclick=()=>{S={...DEF};show();store();msg('Defaults restored.')};
+document.getElementById('wipe').onclick=()=>{if(confirm('Delete your saved game progress? This cannot be undone.')){document.cookie='nh_save=;max-age=0;path='+P;msg('Saved progress deleted.')}};
+show();
+</script></body></html>
